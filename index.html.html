@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last Man Standing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* === RESET & ROOT === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f0f4ff;
+  --surface:   #ffffff;
+  --card:      #f7f9ff;
+  --border:    #dde3f5;
+  --blue:      #4361ee;
+  --blue-dim:  #3451d1;
+  --blue-light:#eef1ff;
+  --red:       #f72585;
+  --red-dim:   #c81a6d;
+  --red-light: #fff0f7;
+  --green:     #06d6a0;
+  --green-dark:#04a87c;
+  --green-light:#e8fdf6;
+  --amber:     #f4a100;
+  --amber-light:#fff8e6;
+  --text:      #1a1f3c;
+  --muted:     #5a6080;
+  --muted2:    #9099be;
+  --white:     #ffffff;
+  --font-display: 'Nunito', sans-serif;
+  --font-body:    'Nunito Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --shadow-sm: 0 1px 3px rgba(67,97,238,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:    0 4px 16px rgba(67,97,238,0.1), 0 1px 4px rgba(0,0,0,0.05);
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === HEADER === */
+header {
+  background: var(--blue);
+  padding: 0 28px;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  height: 62px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 12px rgba(67,97,238,0.3);
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 28px;
+}
+.logo-badge {
+  background: rgba(255,255,255,0.2);
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.header-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+}
+.h-tab {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0 20px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.h-tab:hover { color: rgba(255,255,255,0.9); }
+.h-tab.active { color: #ffffff; border-bottom-color: #ffffff; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* === BUTTONS === */
+.btn {
+  font-family: var(--font-display);
+  font-size: 0.83rem;
+  font-weight: 700;
+  padding: 7px 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.btn-ghost {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.9);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.25); color: #fff; }
+.btn-ghost-dark {
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.btn-ghost-dark:hover { border-color: var(--blue); color: var(--blue); }
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(67,97,238,0.35); }
+.btn-primary:hover { background: var(--blue-dim); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67,97,238,0.4); }
+.btn-danger { background: var(--red-light); border: 1px solid #fca5d0; color: var(--red); }
+.btn-danger:hover { background: #fddcec; }
+.btn-sm { padding: 5px 11px; font-size: 0.76rem; }
+
+/* === CONTROLS BAR === */
+.controls {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.week-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 16px;
+  border-right: 2px solid var(--border);
+}
+.week-label {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted2);
+}
+.week-select {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1.5px solid #c5cef8;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.week-select:focus { outline: none; border-color: var(--blue); }
+.week-select option { background: var(--surface); color: var(--text); }
+
+.search-wrap { position: relative; }
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted2);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+.search-input {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 7px 12px 7px 30px;
+  border-radius: 8px;
+  width: 210px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input::placeholder { color: var(--muted2); }
+.search-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+
+.filter-row { display: flex; gap: 4px; }
+.filter-btn {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--muted);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--muted2); }
+.filter-btn.active { background: var(--blue-light); color: var(--blue); border-color: #a8b8f8; font-weight: 800; }
+
+.ml-auto { margin-left: auto; }
+.flex { display: flex; align-items: center; gap: 8px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  background: linear-gradient(90deg, #eef1ff 0%, #f0fdf9 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 28px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.stat-val {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.stat-val.green { color: var(--green-dark); }
+.stat-val.red { color: var(--red); }
+.stat-val.gold { color: var(--amber); }
+.stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-red { background: var(--red); }
+.dot-gold { background: var(--amber); }
+.dot-muted { background: var(--muted2); }
+
+/* === MAIN === */
+.main { padding: 20px 28px; }
+
+/* === ENTRY TABLE === */
+.table-wrap {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  overflow-x: auto;
+  box-shadow: var(--shadow);
+}
+
+table.entry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.entry-table thead th {
+  background: var(--card);
+  padding: 11px 14px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  border-bottom: 1.5px solid var(--border);
+  white-space: nowrap;
+}
+.entry-table tbody tr {
+  border-bottom: 1px solid #eef0fa;
+  transition: background 0.15s;
+  background: var(--white);
+}
+.entry-table tbody tr:hover { background: #f5f7ff; }
+.entry-table tbody tr:last-child { border-bottom: none; }
+.entry-table tbody td { padding: 8px 14px; vertical-align: middle; }
+
+/* eliminated row */
+.entry-table tbody tr.is-eliminated { background: #fafafa; }
+.entry-table tbody tr.is-eliminated td { opacity: 0.5; }
+.entry-table tbody tr.is-eliminated .p-name { text-decoration: line-through; color: var(--muted2); }
+
+.row-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted2);
+  min-width: 28px;
+}
+.p-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text);
+}
+.p-name:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.p-subtext { font-size: 0.72rem; color: var(--muted2); margin-top: 2px; }
+
+/* PICK CELL */
+.pick-cell { min-width: 210px; }
+.pick-wrap { display: flex; flex-direction: column; gap: 3px; }
+
+.team-select {
+  font-family: var(--font-body);
+  font-size: 0.83rem;
+  background: var(--white);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: 210px;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+.team-select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+.team-select option { background: var(--surface); }
+.team-select option.used-team { color: #f44336; }
+
+.team-select.has-pick { border-color: var(--green); background: var(--green-light); }
+.team-select.is-dup {
+  border-color: var(--red) !important;
+  background: var(--red-light) !important;
+  color: var(--red);
+  animation: dup-pulse 0.9s ease-in-out infinite;
+}
+@keyframes dup-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(247,37,133,0.3); }
+  50%       { box-shadow: 0 0 0 5px rgba(247,37,133,0.06); }
+}
+.dup-warning {
+  font-size: 0.72rem;
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  animation: flash-txt 1s ease-in-out infinite;
+}
+@keyframes flash-txt {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* HISTORY CHIPS */
+.history-cell { min-width: 220px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  background: var(--blue-light);
+  color: var(--blue);
+  border-radius: 20px;
+  border: 1px solid #c5cef8;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.chip-label { font-size: 0.6rem; color: #8ea0f4; }
+.chip-none { font-size: 0.75rem; color: var(--muted2); font-style: italic; }
+
+/* STATUS BADGE */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  font-family: var(--font-display);
+}
+.badge-ok   { background: var(--green-light); color: var(--green-dark); border: 1.5px solid #9ef0d8; }
+.badge-dup  { background: var(--red-light); color: var(--red); border: 1.5px solid #fca5d0; }
+.badge-none { background: var(--card); color: var(--muted2); border: 1.5px solid var(--border); }
+.badge-elim { background: #f3f3f3; color: #999; border: 1.5px solid #ddd; }
+
+/* ELIMINATED TOGGLE */
+.elim-cell { white-space: nowrap; }
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #e8ecf8;
+  border: 1.5px solid var(--border);
+  position: relative;
+  transition: all 0.2s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toggle-track.on { background: #fddcec; border-color: #fca5d0; }
+.toggle-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--muted2);
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: all 0.2s;
+}
+.toggle-track.on .toggle-thumb { left: 18px; background: var(--red); }
+.toggle-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; font-family: var(--font-display); }
+.toggle-track.on + .toggle-label { color: var(--red); }
+
+/* Delete btn */
+.del-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--muted2);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s;
+}
+.del-btn:hover { background: var(--red-light); border-color: #fca5d0; color: var(--red); }
+
+/* === GRID VIEW === */
+.grid-container {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: auto;
+  max-height: calc(100vh - 240px);
+  box-shadow: var(--shadow);
+}
+table.grid-table {
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.grid-table th, .grid-table td {
+  border-right: 1px solid #eef0fa;
+  border-bottom: 1px solid #eef0fa;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+.grid-table th {
+  background: var(--card);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.grid-table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  min-width: 150px;
+  background: var(--card);
+  border-right: 2px solid var(--border);
+}
+.grid-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--white);
+  z-index: 1;
+  border-right: 2px solid var(--border);
+}
+.grid-table tr:nth-child(even) td { background: #fafbff; }
+.grid-table tr:nth-child(even) td:first-child { background: #fafbff; }
+.grid-table tr:hover td { background: #f0f4ff !important; }
+
+.g-name { font-weight: 700; color: var(--text); }
+.g-name.elim { text-decoration: line-through; color: var(--muted2); }
+
+.g-cell { text-align: center; }
+.g-cell.g-ok   { color: var(--green-dark); background: #e8fdf6 !important; }
+.g-cell.g-dup  { color: var(--red); background: var(--red-light) !important; animation: dup-pulse 0.9s infinite; }
+.g-cell.g-none { color: #cdd1e8; }
+.g-code { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; }
+
+/* === EMPTY STATE === */
+.empty-state {
+  text-align: center;
+  padding: 70px 20px;
+}
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.empty-sub { font-size: 0.85rem; color: var(--muted2); }
+
+/* === MODAL === */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,31,60,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.overlay.hidden { display: none; }
+
+.modal {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-top: 4px solid var(--blue);
+  border-radius: 14px;
+  padding: 28px;
+  width: 520px;
+  max-width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(67,97,238,0.2);
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.form-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 8px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.form-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+textarea.form-input { min-height: 130px; resize: vertical; }
+.form-hint { font-size: 0.75rem; color: var(--muted2); margin-top: 5px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* === TOAST === */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--blue);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.28s;
+  pointer-events: none;
+  max-width: 320px;
+  box-shadow: var(--shadow);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.t-error { border-left-color: var(--red); }
+.toast.t-warn  { border-left-color: var(--amber); }
+
+/* name edit */
+.name-edit-input {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--white);
+  border: 1.5px solid var(--blue);
+  color: var(--text);
+  padding: 3px 8px;
+  border-radius: 6px;
+  width: 180px;
+}
+.name-edit-input:focus { outline: none; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--card); }
+::-webkit-scrollbar-thumb { background: #c5cef8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted2); }
+
+input[type="file"] { display: none; }
+.hidden { display: none !important; }
+
+/* === SYNC INDICATOR === */
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  transition: all 0.3s;
+  cursor: default;
+  white-space: nowrap;
+}
+.sync-indicator.syncing { background: rgba(244,161,0,0.25); border-color: rgba(244,161,0,0.5); color: #ffe599; }
+.sync-indicator.synced  { background: rgba(6,214,160,0.2);  border-color: rgba(6,214,160,0.5); color: #9ef0d8; }
+.sync-indicator.error   { background: rgba(247,37,133,0.2); border-color: rgba(247,37,133,0.5); color: #ffb3d9; cursor:pointer; }
+.sync-indicator.offline { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: currentColor;
+}
+.sync-indicator.syncing .sync-dot { animation: blink 0.7s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* === SETTINGS MODAL === */
+.settings-section {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.settings-section-title {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted2);
+  margin-bottom: 10px;
+}
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; margin-bottom: 0; }
+.token-wrap { position: relative; }
+.token-wrap .form-input { padding-right: 70px; font-family: var(--font-mono); font-size: 0.78rem; }
+.token-toggle {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 0.72rem; font-weight: 700; color: var(--blue);
+  background: none; border: none; cursor: pointer; font-family: var(--font-display);
+}
+.token-toggle:hover { color: var(--blue-dim); }
+.info-box {
+  background: var(--blue-light);
+  border: 1.5px solid #c5cef8;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+.info-box a { color: var(--blue); font-weight: 700; }
+.info-box ol { margin: 6px 0 0 16px; }
+.info-box li { margin-bottom: 3px; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.75rem; font-weight: 700; font-family: var(--font-display);
+  padding: 3px 10px; border-radius: 20px;
+}
+.status-pill.ok   { background: var(--green-light); color: var(--green-dark); border: 1.5px solid #9ef0d8; }
+.status-pill.warn { background: var(--amber-light); color: var(--amber); border: 1.5px solid #fcd97a; }
+.status-pill.off  { background: var(--card); color: var(--muted2); border: 1.5px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    ⚽ Last Man <span style="color:var(--green)">Standing</span>
+    <span class="logo-badge">ADMIN</span>
+  </div>
+  <nav class="header-tabs">
+    <button class="h-tab active" id="tab-entry" onclick="switchTab('entry', this)">📋 Entry</button>
+    <button class="h-tab" id="tab-grid"  onclick="switchTab('grid', this)">🔲 Grid</button>
+  </nav>
+  <div class="header-actions">
+    <div class="sync-indicator offline" id="sync-status" onclick="onSyncClick()" title="GitHub sync status">
+      <span class="sync-dot"></span>
+      <span id="sync-label">Not configured</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openSettings()" title="GitHub sync settings">⚙ Sync Settings</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportJSON()">💾 Backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('restore-file').click()">📂 Restore</button>
+    <input type="file" id="restore-file" accept=".json" onchange="importJSON(event)">
+  </div>
+</header>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="week-selector">
+    <span class="week-label">Week</span>
+    <select class="week-select" id="week-select" onchange="setWeek(this.value)"></select>
+    <button class="btn btn-ghost-dark btn-sm" onclick="addWeek()">+ Add Week</button>
+    <button class="btn btn-ghost-dark btn-sm" onclick="removeLastWeek()">− Last</button>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search" placeholder="Search participants…" oninput="renderCurrent()">
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('active',this)">Active</button>
+    <button class="filter-btn" onclick="setFilter('eliminated',this)">Eliminated</button>
+    <button class="filter-btn" onclick="setFilter('nopick',this)">No Pick</button>
+    <button class="filter-btn" onclick="setFilter('dup',this)">⚠ Duplicates</button>
+  </div>
+
+  <div class="flex ml-auto">
+    <button class="btn btn-ghost-dark" onclick="openAddModal()">+ Add Participants</button>
+    <button class="btn btn-ghost-dark" onclick="document.getElementById('xl-import-file').click()">📂 Import Excel</button>
+    <input type="file" id="xl-import-file" accept=".xlsx,.xls" onchange="importXLSX(event)">
+    <button class="btn btn-primary" onclick="exportXLSX()">📊 Excel Export</button>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar" id="stats-bar"></div>
+
+<!-- MAIN AREA -->
+<div class="main">
+  <!-- ENTRY VIEW -->
+  <div id="entry-view">
+    <div class="table-wrap">
+      <table class="entry-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Participant</th>
+            <th>Pick — Week <span id="th-week"></span></th>
+            <th>Previous Picks</th>
+            <th>Status</th>
+            <th>Eliminated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="entry-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GRID VIEW -->
+  <div id="grid-view" class="hidden">
+    <div class="grid-container">
+      <table class="grid-table" id="grid-table"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay hidden" id="add-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Add Participants</div>
+    <div class="form-group">
+      <label class="form-label">Names</label>
+      <textarea class="form-input" id="bulk-input" placeholder="One name per line:&#10;Alice Smith&#10;Bob Jones&#10;Charlie Brown&#10;&#10;Or comma-separated: Alice, Bob, Charlie"></textarea>
+      <div class="form-hint">Duplicates are automatically skipped.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost-dark" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addParticipants()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME MODAL -->
+<div class="overlay hidden" id="rename-modal" onclick="if(event.target===this)closeRenameModal()">
+  <div class="modal" style="width:380px">
+    <div class="modal-title">Rename Participant</div>
+    <input type="hidden" id="rename-id">
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input class="form-input" id="rename-input" type="text" onkeydown="if(event.key==='Enter')doRename()">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost-dark" onclick="closeRenameModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doRename()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- GITHUB SETTINGS MODAL -->
+<div class="overlay hidden" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">⚙ GitHub Sync Settings</div>
+
+    <div class="info-box">
+      This app stores your data in a <strong>private file in your GitHub repo</strong>, so it stays in sync across all your devices automatically.<br><br>
+      To set it up:
+      <ol>
+        <li>Go to <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">GitHub → Settings → Personal access tokens → Fine-grained tokens</a></li>
+        <li>Set expiry to your preference (1 year is fine)</li>
+        <li>Under <strong>Repository access</strong>, select your Last Man Standing repo only</li>
+        <li>Under <strong>Permissions → Contents</strong>, set to <strong>Read and write</strong></li>
+        <li>Generate and paste the token below</li>
+      </ol>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">GitHub Token</div>
+      <div class="form-group">
+        <label class="form-label">Personal Access Token (stored locally on this device only)</label>
+        <div class="token-wrap">
+          <input class="form-input" id="gh-token" type="password" placeholder="github_pat_…" autocomplete="off">
+          <button class="token-toggle" onclick="toggleTokenVisibility()">Show</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Repository</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">GitHub Username</label>
+          <input class="form-input" id="gh-owner" type="text" placeholder="your-username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Repository Name</label>
+          <input class="form-input" id="gh-repo" type="text" placeholder="survivor-pl">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">Data File Path (don't change unless needed)</label>
+        <input class="form-input" id="gh-path" type="text" placeholder="survivor-data.json" value="survivor-data.json">
+      </div>
+    </div>
+
+    <div id="gh-test-result"></div>
+
+    <div class="modal-footer">
+      <div id="gh-sync-status-pill" style="margin-right:auto"></div>
+      <button class="btn btn-ghost-dark" onclick="testGHConnection()">Test Connection</button>
+      <button class="btn btn-ghost-dark" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save &amp; Sync</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   DATA & CONSTANTS
+   ===================================================== */
+const PL_TEAMS = [
+  'Arsenal','Aston Villa','Bournemouth','Brentford','Brighton & Hove Albion',
+  'Chelsea','Crystal Palace','Everton','Fulham','Ipswich Town',
+  'Leicester City','Liverpool','Manchester City','Manchester United',
+  'Newcastle United','Nottingham Forest','Southampton',
+  'Tottenham Hotspur','West Ham United','Wolverhampton Wanderers'
+];
+
+const ABBR = {
+  'Arsenal':'ARS','Aston Villa':'AVL','Bournemouth':'BOU','Brentford':'BRE',
+  'Brighton & Hove Albion':'BHA','Chelsea':'CHE','Crystal Palace':'CRY',
+  'Everton':'EVE','Fulham':'FUL','Ipswich Town':'IPS','Leicester City':'LEI',
+  'Liverpool':'LIV','Manchester City':'MCI','Manchester United':'MUN',
+  'Newcastle United':'NEW','Nottingham Forest':'NFO','Southampton':'SOU',
+  'Tottenham Hotspur':'TOT','West Ham United':'WHU','Wolverhampton Wanderers':'WOL'
+};
+
+const KEY    = 'survivor-pl-v1';
+const GH_KEY = 'survivor-pl-gh-config';
+
+let S = { participants: [], weeks: [1], currentWeek: 1 };
+let filter = 'all';
+let activeTab = 'entry';
+
+/* =====================================================
+   GITHUB SYNC ENGINE
+   ===================================================== */
+let GH = { token:'', owner:'', repo:'', path:'survivor-data.json' };
+let _fileSHA   = null;   // SHA of the remote file — needed for updates
+let _pushTimer = null;   // debounce handle
+
+function ghConfigured() {
+  return !!(GH.token && GH.owner && GH.repo && GH.path);
+}
+
+function ghApiUrl() {
+  return `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
+}
+
+function ghHeaders() {
+  return {
+    'Authorization': `Bearer ${GH.token}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json'
+  };
+}
+
+// Fetch latest data from GitHub — returns parsed data or null
+async function ghFetch() {
+  if (!ghConfigured()) return null;
+  setSyncStatus('syncing', 'Syncing…');
+  try {
+    const res = await fetch(ghApiUrl(), { headers: ghHeaders() });
+    if (res.status === 404) {
+      // File doesn't exist yet — that's fine, we'll create it on first save
+      _fileSHA = null;
+      setSyncStatus('synced', 'Synced');
+      return null;
+    }
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const json = await res.json();
+    _fileSHA = json.sha;
+    const decoded = JSON.parse(atob(json.content.replace(/\n/g,'')));
+    setSyncStatus('synced', 'Synced');
+    return decoded;
+  } catch(e) {
+    console.error('ghFetch error', e);
+    setSyncStatus('error', 'Sync error — click to retry');
+    return null;
+  }
+}
+
+// Push current state to GitHub (debounced — waits 1.5s after last change)
+function ghPush() {
+  if (!ghConfigured()) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(_doPush, 1500);
+}
+
+async function _doPush() {
+  if (!ghConfigured()) return;
+  setSyncStatus('syncing', 'Saving…');
+  try {
+    const body = { message: `Update survivor data — ${new Date().toISOString()}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(S)))) };
+    if (_fileSHA) body.sha = _fileSHA;
+    const res  = await fetch(ghApiUrl(), { method:'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      // If SHA mismatch (conflict), re-fetch then re-push
+      if (res.status === 409 || (err.message||'').includes('sha')) {
+        setSyncStatus('syncing', 'Resolving conflict…');
+        await ghFetch();       // refreshes _fileSHA
+        await _doPush();       // retry
+        return;
+      }
+      throw new Error(`GitHub API ${res.status}: ${err.message||''}`);
+    }
+    const json = await res.json();
+    _fileSHA = json.content?.sha || _fileSHA;
+    setSyncStatus('synced', 'Synced');
+  } catch(e) {
+    console.error('ghPush error', e);
+    setSyncStatus('error', 'Save failed — click to retry');
+    toast('⚠ Could not save to GitHub. Data is safe locally.', 'warn');
+  }
+}
+
+function setSyncStatus(state, label) {
+  const el = document.getElementById('sync-status');
+  const lb = document.getElementById('sync-label');
+  if (!el || !lb) return;
+  el.className = `sync-indicator ${state}`;
+  lb.textContent = label;
+}
+
+function onSyncClick() {
+  const el = document.getElementById('sync-status');
+  if (el.classList.contains('error')) {
+    ghPush(); // retry
+    toast('Retrying sync…');
+  } else if (el.classList.contains('offline')) {
+    openSettings();
+  }
+}
+
+/* =====================================================
+   STORAGE (localStorage + GitHub)
+   ===================================================== */
+function save() {
+  // Always write to localStorage immediately (instant, no network needed)
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+  } catch(e) {
+    toast('⚠ Local storage nearly full — please use JSON backup', 'warn');
+  }
+  // Then push to GitHub in the background (debounced)
+  ghPush();
+}
+
+function loadLocalStorage() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) S = JSON.parse(raw);
+    if (!Array.isArray(S.weeks)) S.weeks = [1];
+    if (!S.currentWeek) S.currentWeek = 1;
+    if (!Array.isArray(S.participants)) S.participants = [];
+  } catch(e) {
+    console.warn('Failed to load local state', e);
+  }
+}
+
+function loadGHConfig() {
+  try {
+    const raw = localStorage.getItem(GH_KEY);
+    if (raw) GH = { ...GH, ...JSON.parse(raw) };
+  } catch(e) {}
+  if (ghConfigured()) setSyncStatus('syncing', 'Connecting…');
+  else setSyncStatus('offline', 'Not configured');
+}
+
+function saveGHConfig() {
+  localStorage.setItem(GH_KEY, JSON.stringify(GH));
+}
+
+async function load() {
+  loadGHConfig();
+  loadLocalStorage();   // render immediately from local cache
+
+  if (ghConfigured()) {
+    const remote = await ghFetch();
+    if (remote) {
+      // Merge: use remote as source of truth, but keep currentWeek preference local
+      const localWeek = S.currentWeek;
+      S = remote;
+      // If local has a currentWeek that exists in remote weeks, preserve it
+      if (S.weeks.includes(localWeek)) S.currentWeek = localWeek;
+      localStorage.setItem(KEY, JSON.stringify(S));
+      renderWeekSelect();
+      renderCurrent();
+    }
+  }
+}
+
+/* =====================================================
+   HELPERS
+   ===================================================== */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function isDup(p, week, team) {
+  if (!team) return false;
+  return Object.entries(p.picks).some(([w,t]) => +w !== +week && t === team);
+}
+
+/* =====================================================
+   WEEK MANAGEMENT
+   ===================================================== */
+function renderWeekSelect() {
+  const sel = document.getElementById('week-select');
+  sel.innerHTML = S.weeks.map(w =>
+    `<option value="${w}" ${w===S.currentWeek?'selected':''}>Week ${w}</option>`
+  ).join('');
+  document.getElementById('th-week').textContent = S.currentWeek;
+}
+
+function setWeek(w) {
+  S.currentWeek = +w;
+  save();
+  document.getElementById('th-week').textContent = S.currentWeek;
+  renderCurrent();
+}
+
+function addWeek() {
+  const next = Math.max(...S.weeks) + 1;
+  S.weeks.push(next);
+  S.currentWeek = next;
+  save();
+  renderWeekSelect();
+  renderCurrent();
+}
+
+function removeLastWeek() {
+  if (S.weeks.length <= 1) { toast('Cannot remove the only week', 'error'); return; }
+  const last = Math.max(...S.weeks);
+  if (!confirm(`Remove Week ${last}? All picks for that week will be deleted.`)) return;
+  S.weeks = S.weeks.filter(w => w !== last);
+  S.participants.forEach(p => delete p.picks[last]);
+  S.currentWeek = Math.max(...S.weeks);
+  save();
+  renderWeekSelect();
+  renderCurrent();
+}
+
+/* =====================================================
+   PARTICIPANTS
+   ===================================================== */
+function addParticipants() {
+  const raw = document.getElementById('bulk-input').value.trim();
+  if (!raw) { toast('No names entered', 'error'); return; }
+  const names = raw.split(/[\n,]+/).map(n=>n.trim()).filter(Boolean);
+  let added = 0, skipped = 0;
+  names.forEach(name => {
+    if (S.participants.find(p => p.name.toLowerCase() === name.toLowerCase())) { skipped++; return; }
+    S.participants.push({ id: uid(), name, eliminated: false, eliminatedWeek: null, picks: {} });
+    added++;
+  });
+  save();
+  closeModal();
+  renderCurrent();
+  const msg = skipped
+    ? `Added ${added} participant${added!==1?'s':''} (${skipped} duplicate${skipped!==1?'s':''} skipped)`
+    : `Added ${added} participant${added!==1?'s':''}`;
+  toast(msg, 'success');
+}
+
+function deleteParticipant(id) {
+  const p = S.participants.find(p=>p.id===id);
+  if (!p || !confirm(`Delete "${p.name}"?`)) return;
+  S.participants = S.participants.filter(p=>p.id!==id);
+  save();
+  renderCurrent();
+  toast('Participant removed');
+}
+
+function toggleEliminated(id) {
+  const p = S.participants.find(p=>p.id===id);
+  if (!p) return;
+  p.eliminated = !p.eliminated;
+  p.eliminatedWeek = p.eliminated ? S.currentWeek : null;
+  save();
+  renderCurrent();
+}
+
+function setPick(id, week, team) {
+  const p = S.participants.find(p=>p.id===id);
+  if (!p) return;
+  if (team === '') delete p.picks[week];
+  else p.picks[week] = team;
+  save();
+  // Lightweight update — just re-render the pick cell and status for this row
+  quickUpdateRow(p, week);
+  updateStats();
+}
+
+function quickUpdateRow(p, week) {
+  const sel = document.getElementById(`sel-${p.id}`);
+  const warnEl = document.getElementById(`warn-${p.id}`);
+  const statusEl = document.getElementById(`status-${p.id}`);
+  if (!sel) return;
+  const pick = p.picks[week] || '';
+  const dup = isDup(p, week, pick);
+  sel.className = `team-select${pick?' has-pick':''}${dup?' is-dup':''}`;
+  if (warnEl) warnEl.innerHTML = dup ? `<span class="dup-warning">⚠ Already used this team!</span>` : '';
+  if (statusEl) statusEl.innerHTML = statusBadge(p, week);
+  // re-color options
+  const usedSet = new Set(Object.entries(p.picks).filter(([w])=>+w!==+week).map(([,t])=>t));
+  Array.from(sel.options).forEach(opt => {
+    opt.style.color = usedSet.has(opt.value) ? '#f44336' : '';
+  });
+}
+
+function statusBadge(p, week) {
+  const pick = p.picks[week];
+  const dup  = pick && isDup(p, week, pick);
+  if (p.eliminated) return `<span class="badge badge-elim">💀 Out</span>`;
+  if (dup)          return `<span class="badge badge-dup">⚠ DUPLICATE</span>`;
+  if (pick)         return `<span class="badge badge-ok">✓ Picked</span>`;
+  return `<span class="badge badge-none">— No pick</span>`;
+}
+
+/* =====================================================
+   RENAME
+   ===================================================== */
+function openRenameModal(id) {
+  const p = S.participants.find(p=>p.id===id);
+  if (!p) return;
+  document.getElementById('rename-id').value = id;
+  document.getElementById('rename-input').value = p.name;
+  document.getElementById('rename-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('rename-input').select(), 50);
+}
+function closeRenameModal() { document.getElementById('rename-modal').classList.add('hidden'); }
+function doRename() {
+  const id = document.getElementById('rename-id').value;
+  const name = document.getElementById('rename-input').value.trim();
+  if (!name) { toast('Name cannot be empty', 'error'); return; }
+  const p = S.participants.find(p=>p.id===id);
+  if (!p) return;
+  p.name = name;
+  save();
+  closeRenameModal();
+  renderCurrent();
+}
+
+/* =====================================================
+   FILTER & SEARCH
+   ===================================================== */
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCurrent();
+}
+
+function getFiltered() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+  const w = S.currentWeek;
+  return S.participants.filter(p => {
+    if (q && !p.name.toLowerCase().includes(q)) return false;
+    if (filter === 'active'     && p.eliminated) return false;
+    if (filter === 'eliminated' && !p.eliminated) return false;
+    if (filter === 'nopick'     && p.picks[w]) return false;
+    if (filter === 'dup') {
+      const pick = p.picks[w];
+      if (!pick || !isDup(p, w, pick)) return false;
+    }
+    return true;
+  });
+}
+
+/* =====================================================
+   RENDER — ENTRY VIEW
+   ===================================================== */
+function renderEntry() {
+  const week = S.currentWeek;
+  const participants = getFiltered();
+  const tbody = document.getElementById('entry-tbody');
+
+  if (participants.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7">
+      <div class="empty-state">
+        <div class="empty-icon">${S.participants.length===0?'⚽':'🔍'}</div>
+        <div class="empty-title">${S.participants.length===0?'No participants yet':'No matches found'}</div>
+        <div class="empty-sub">${S.participants.length===0?'Click "+ Add Participants" to get started':'Try adjusting your search or filter'}</div>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = participants.map((p, i) => {
+    const pick    = p.picks[week] || '';
+    const dup     = isDup(p, week, pick);
+    const prevs   = Object.entries(p.picks).filter(([w])=>+w!==+week).sort(([a],[b])=>+a-+b);
+    const usedSet = new Set(prevs.map(([,t])=>t));
+
+    const options = PL_TEAMS.map(t => {
+      const used = usedSet.has(t);
+      return `<option value="${esc(t)}" ${pick===t?'selected':''} style="${used?'color:#f44336;':''}">${used?'⚠ ':''}${esc(t)}</option>`;
+    }).join('');
+
+    return `
+<tr class="${p.eliminated?'is-eliminated':''}" id="tr-${p.id}">
+  <td class="row-num">${i+1}</td>
+  <td>
+    <div class="p-name" onclick="openRenameModal('${p.id}')" title="Click to rename">${esc(p.name)}</div>
+    ${p.eliminated?`<div class="p-subtext">Out — Wk${p.eliminatedWeek||'?'}</div>`:''}
+  </td>
+  <td class="pick-cell">
+    <div class="pick-wrap">
+      <select class="team-select${pick?' has-pick':''}${dup?' is-dup':''}" id="sel-${p.id}"
+        onchange="setPick('${p.id}',${week},this.value)">
+        <option value="">— No pick —</option>
+        ${options}
+      </select>
+      <div id="warn-${p.id}">${dup?'<span class="dup-warning">⚠ Already used this team!</span>':''}</div>
+    </div>
+  </td>
+  <td class="history-cell">
+    <div class="chips">
+      ${prevs.length
+        ? prevs.map(([w,t])=>`<span class="chip" title="Week ${w}: ${t}"><span class="chip-label">W${w} </span>${ABBR[t]||t.slice(0,3)}</span>`).join('')
+        : '<span class="chip-none">None yet</span>'
+      }
+    </div>
+  </td>
+  <td id="status-${p.id}">${statusBadge(p,week)}</td>
+  <td class="elim-cell">
+    <div class="toggle-wrap" onclick="toggleEliminated('${p.id}')">
+      <div class="toggle-track ${p.eliminated?'on':''}">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="toggle-label">${p.eliminated?'Out':'Active'}</span>
+    </div>
+  </td>
+  <td>
+    <button class="del-btn" onclick="deleteParticipant('${p.id}')" title="Delete participant">✕</button>
+  </td>
+</tr>`;
+  }).join('');
+}
+
+/* =====================================================
+   RENDER — GRID VIEW
+   ===================================================== */
+function renderGrid() {
+  const weeks = [...S.weeks].sort((a,b)=>a-b);
+  const participants = getFiltered();
+  const tbl = document.getElementById('grid-table');
+
+  let html = `<thead><tr>
+    <th>Participant</th>
+    ${weeks.map(w=>`<th style="${w===S.currentWeek?'color:var(--green)':''}" title="Week ${w}">Wk ${w}</th>`).join('')}
+    <th># Used</th>
+  </tr></thead><tbody>`;
+
+  participants.forEach(p => {
+    const used = Object.values(p.picks).filter(Boolean).length;
+    html += `<tr>
+      <td>
+        <span class="g-name${p.eliminated?' elim':''}">${esc(p.name)}</span>
+        ${p.eliminated?' 💀':''}
+      </td>
+      ${weeks.map(w => {
+        const pick = p.picks[w];
+        const dup  = pick && isDup(p, w, pick);
+        let cls = 'g-cell ';
+        cls += dup ? 'g-dup' : pick ? 'g-ok' : 'g-none';
+        const label = dup ? `⚠ ${ABBR[pick]||pick}` : pick ? (ABBR[pick]||pick) : '—';
+        return `<td class="${cls}" title="${pick?`${pick}${dup?' (DUPLICATE!)':''}`:''}">${
+          pick ? `<span class="g-code">${label}</span>` : '—'
+        }</td>`;
+      }).join('')}
+      <td style="text-align:center;font-family:var(--font-mono);color:var(--muted);font-size:0.75rem">${used}/${weeks.length}</td>
+    </tr>`;
+  });
+
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+/* =====================================================
+   STATS
+   ===================================================== */
+function updateStats() {
+  const w    = S.currentWeek;
+  const all  = S.participants;
+  const act  = all.filter(p=>!p.eliminated);
+  const elim = all.filter(p=>p.eliminated);
+  const picked = all.filter(p=>p.picks[w]);
+  const dups   = all.filter(p=>{const pk=p.picks[w];return pk&&isDup(p,w,pk);});
+
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="stat-dot dot-muted"></span>Total <span class="stat-val">${all.length}</span></div>
+    <div class="stat"><span class="stat-dot dot-green"></span>Active <span class="stat-val green">${act.length}</span></div>
+    <div class="stat"><span class="stat-dot dot-red"></span>Eliminated <span class="stat-val red">${elim.length}</span></div>
+    <div class="stat"><span class="stat-dot dot-muted"></span>Picked Wk${w} <span class="stat-val">${picked.length} / ${all.length}</span></div>
+    ${dups.length ? `<div class="stat"><span class="stat-dot dot-red"></span>Duplicates <span class="stat-val red">⚠ ${dups.length}</span></div>` : ''}
+  `;
+}
+
+/* =====================================================
+   TAB SWITCHING
+   ===================================================== */
+function switchTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.h-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('entry-view').classList.toggle('hidden', tab!=='entry');
+  document.getElementById('grid-view').classList.toggle('hidden',  tab!=='grid');
+  if (tab==='grid') renderGrid();
+}
+
+function renderCurrent() {
+  if (activeTab==='entry') renderEntry();
+  else renderGrid();
+  updateStats();
+}
+
+/* =====================================================
+   MODALS
+   ===================================================== */
+function openAddModal() {
+  document.getElementById('bulk-input').value = '';
+  document.getElementById('add-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('bulk-input').focus(), 50);
+}
+function closeModal() {
+  document.getElementById('add-modal').classList.add('hidden');
+}
+
+/* =====================================================
+   EXCEL EXPORT
+   ===================================================== */
+function exportXLSX() {
+  if (typeof XLSX === 'undefined') { toast('Excel library not loaded — check your internet connection', 'error'); return; }
+
+  const weeks  = [...S.weeks].sort((a,b)=>a-b);
+  const wb     = XLSX.utils.book_new();
+
+  /* ---- Sheet 1: Picks ---- */
+  const headers = ['#', 'Name', 'Status', ...weeks.map(w=>`Week ${w}`), 'Picks Made', 'Duplicates'];
+  const rows = S.participants.map((p, i) => {
+    const status   = p.eliminated ? `Eliminated (Wk${p.eliminatedWeek||'?'})` : 'Active';
+    const pickCols = weeks.map(w => p.picks[w] || '');
+    const allPicks = Object.values(p.picks).filter(Boolean);
+    const dupCount = weeks.filter(w => { const pk=p.picks[w]; return pk && isDup(p,w,pk); }).length;
+    return [i+1, p.name, status, ...pickCols, allPicks.length, dupCount || 0];
+  });
+
+  const picksWS = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Column widths
+  picksWS['!cols'] = [
+    {wch:4},   // #
+    {wch:22},  // Name
+    {wch:18},  // Status
+    ...weeks.map(()=>({wch:22})), // week cols
+    {wch:12},  // Picks Made
+    {wch:12},  // Duplicates
+  ];
+
+  // Style header row (SheetJS CE supports limited styling via s property, skip for compat)
+  XLSX.utils.book_append_sheet(wb, picksWS, 'Picks');
+
+  /* ---- Sheet 2: Summary ---- */
+  const w = S.currentWeek;
+  const active  = S.participants.filter(p=>!p.eliminated);
+  const elim    = S.participants.filter(p=>p.eliminated);
+  const picked  = S.participants.filter(p=>p.picks[w]);
+  const dups    = S.participants.filter(p=>{ const pk=p.picks[w]; return pk&&isDup(p,w,pk); });
+  const nopick  = active.filter(p=>!p.picks[w]);
+
+  const summaryData = [
+    ['Last Man Standing — Summary'],
+    ['Exported', new Date().toLocaleString()],
+    ['Current Week', `Week ${w}`],
+    [],
+    ['Metric', 'Count'],
+    ['Total Participants', S.participants.length],
+    ['Active',            active.length],
+    ['Eliminated',        elim.length],
+    [`Picked (Week ${w})`,  picked.length],
+    [`No Pick (Week ${w})`, nopick.length],
+    [`Duplicates (Week ${w})`, dups.length],
+    [],
+    ['Teams Used (All Time'],
+  ];
+
+  // Count how many times each team has been picked across all participants/weeks
+  const teamCounts = {};
+  S.participants.forEach(p => Object.values(p.picks).forEach(t => { if(t) teamCounts[t] = (teamCounts[t]||0)+1; }));
+  Object.entries(teamCounts).sort((a,b)=>b[1]-a[1]).forEach(([team,count]) => {
+    summaryData.push([team, count]);
+  });
+
+  const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+  summaryWS['!cols'] = [{wch:30},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+
+  /* ---- Sheet 3: _restore (hidden machine-readable round-trip data) ---- */
+  const restoreWS = XLSX.utils.aoa_to_sheet([['__survivor_pl_data__'], [JSON.stringify(S)]]);
+  restoreWS['!cols'] = [{wch:10}];
+  XLSX.utils.book_append_sheet(wb, restoreWS, '_restore');
+
+  XLSX.writeFile(wb, `survivor-pl-week${S.currentWeek}-${yyyymmdd()}.xlsx`);
+  toast('Excel file exported!');
+}
+
+/* =====================================================
+   EXCEL IMPORT
+   ===================================================== */
+function importXLSX(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { toast('Excel library not loaded', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+
+      // --- Try round-trip restore via _restore sheet first ---
+      if (wb.SheetNames.includes('_restore')) {
+        const ws   = wb.Sheets['_restore'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        // Row 0 is sentinel, Row 1 is JSON
+        if (rows[0]?.[0] === '__survivor_pl_data__' && rows[1]?.[0]) {
+          const data = JSON.parse(rows[1][0]);
+          if (!data.participants || !Array.isArray(data.weeks)) throw new Error('Invalid structure');
+          if (!confirm(`Restore from Excel backup?\n\nThis will replace all current data with ${data.participants.length} participants across ${data.weeks.length} week(s).\n\nCurrent data will be overwritten.`)) {
+            evt.target.value = ''; return;
+          }
+          S = data;
+          save();
+          renderWeekSelect();
+          renderCurrent();
+          toast(`Restored: ${S.participants.length} participants, ${S.weeks.length} week(s)`);
+          evt.target.value = '';
+          return;
+        }
+      }
+
+      // --- Fallback: import names from column B of "Picks" sheet (or first sheet) ---
+      const sheetName = wb.SheetNames.includes('Picks') ? 'Picks' : wb.SheetNames[0];
+      const ws   = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+
+      // Skip header row, read col index 1 (column B = Name)
+      const names = rows.slice(1)
+        .map(r => String(r[1]||'').trim())
+        .filter(Boolean);
+
+      if (!names.length) { toast('No names found in the Name column (column B)', 'error'); evt.target.value=''; return; }
+
+      const action = confirm(
+        `Found ${names.length} name(s) in the file.\n\nOK = Add as new participants (skips duplicates)\nCancel = Abort`
+      );
+      if (!action) { evt.target.value=''; return; }
+
+      let added=0, skipped=0;
+      names.forEach(name => {
+        if (S.participants.find(p=>p.name.toLowerCase()===name.toLowerCase())) { skipped++; return; }
+        S.participants.push({id:uid(), name, eliminated:false, eliminatedWeek:null, picks:{}});
+        added++;
+      });
+      save();
+      renderCurrent();
+      toast(`Added ${added} participant${added!==1?'s':''}${skipped?`, ${skipped} skipped`:''}`);
+
+    } catch(err) {
+      console.error(err);
+      toast('Could not read file — make sure it\'s a valid .xlsx export', 'error');
+    }
+    evt.target.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+/* =====================================================
+   BACKUP / RESTORE
+   ===================================================== */
+function exportJSON() {
+  download(JSON.stringify(S, null, 2), `survivor-pl-backup-${yyyymmdd()}.json`, 'application/json');
+  toast('Backup saved!');
+}
+
+function importJSON(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.participants || !Array.isArray(data.weeks)) throw new Error();
+      if (!confirm(`Restore backup? This will replace all current data (${data.participants.length} participants). Current data will be lost.`)) return;
+      S = data;
+      save();
+      renderWeekSelect();
+      renderCurrent();
+      toast('Data restored successfully!');
+    } catch {
+      toast('Invalid backup file', 'error');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+/* =====================================================
+   UTILS
+   ===================================================== */
+function download(content, filename, type) {
+  const blob = new Blob([content], {type});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function yyyymmdd() {
+  return new Date().toISOString().slice(0,10);
+}
+
+let _toastTimer;
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show t-${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+/* =====================================================
+   GITHUB SETTINGS MODAL
+   ===================================================== */
+function openSettings() {
+  document.getElementById('gh-token').value = GH.token || '';
+  document.getElementById('gh-owner').value = GH.owner || '';
+  document.getElementById('gh-repo').value  = GH.repo  || '';
+  document.getElementById('gh-path').value  = GH.path  || 'survivor-data.json';
+  document.getElementById('gh-test-result').innerHTML = '';
+  updateSettingsPill();
+  document.getElementById('settings-modal').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.add('hidden');
+}
+
+function updateSettingsPill() {
+  const el = document.getElementById('gh-sync-status-pill');
+  if (!el) return;
+  if (ghConfigured()) {
+    el.innerHTML = `<span class="status-pill ok">✓ Sync active</span>`;
+  } else {
+    el.innerHTML = `<span class="status-pill off">○ Not configured</span>`;
+  }
+}
+
+function toggleTokenVisibility() {
+  const inp = document.getElementById('gh-token');
+  const btn = document.querySelector('.token-toggle');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'Hide'; }
+  else { inp.type = 'password'; btn.textContent = 'Show'; }
+}
+
+async function testGHConnection() {
+  const token = document.getElementById('gh-token').value.trim();
+  const owner = document.getElementById('gh-owner').value.trim();
+  const repo  = document.getElementById('gh-repo').value.trim();
+  const path  = document.getElementById('gh-path').value.trim() || 'survivor-data.json';
+  const resultEl = document.getElementById('gh-test-result');
+
+  if (!token || !owner || !repo) {
+    resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">⚠ Please fill in all fields first.</div>`;
+    return;
+  }
+
+  resultEl.innerHTML = `<div class="info-box" style="margin-bottom:0">🔄 Testing connection…</div>`;
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+    if (res.status === 200 || res.status === 404) {
+      resultEl.innerHTML = `<div class="info-box" style="background:var(--green-light);border-color:#9ef0d8;margin-bottom:0">✅ Connection successful! ${res.status===404?'(Data file will be created on first save.)':''}</div>`;
+    } else if (res.status === 401) {
+      resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">❌ Invalid token — check it was copied correctly and hasn't expired.</div>`;
+    } else if (res.status === 403) {
+      resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">❌ Permission denied — make sure the token has Contents: Read and write on this repo.</div>`;
+    } else if (res.status === 404) {
+      resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">❌ Repo not found — check the username and repo name.</div>`;
+    } else {
+      resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">❌ Unexpected error (${res.status}) — check all fields and try again.</div>`;
+    }
+  } catch(e) {
+    resultEl.innerHTML = `<div class="info-box" style="background:var(--red-light);border-color:#fca5d0;margin-bottom:0">❌ Network error — make sure you have internet access.</div>`;
+  }
+}
+
+async function saveSettings() {
+  const token = document.getElementById('gh-token').value.trim();
+  const owner = document.getElementById('gh-owner').value.trim();
+  const repo  = document.getElementById('gh-repo').value.trim();
+  const path  = document.getElementById('gh-path').value.trim() || 'survivor-data.json';
+
+  if (!token || !owner || !repo) {
+    toast('Please fill in all GitHub fields', 'error'); return;
+  }
+
+  GH = { token, owner, repo, path };
+  saveGHConfig();
+  _fileSHA = null; // reset SHA so we re-fetch cleanly
+
+  closeSettings();
+  toast('Settings saved — connecting to GitHub…');
+
+  const remote = await ghFetch();
+  if (remote) {
+    if (S.participants.length > 0) {
+      const useRemote = confirm(
+        `Found existing data on GitHub (${remote.participants.length} participants).\n\nOK = Load from GitHub (overwrites local)\nCancel = Keep local data and push it to GitHub`
+      );
+      if (useRemote) {
+        S = remote;
+        localStorage.setItem(KEY, JSON.stringify(S));
+        renderWeekSelect();
+        renderCurrent();
+        toast('Loaded data from GitHub');
+      } else {
+        await _doPush();
+        toast('Local data pushed to GitHub');
+      }
+    } else {
+      S = remote;
+      localStorage.setItem(KEY, JSON.stringify(S));
+      renderWeekSelect();
+      renderCurrent();
+      toast('Loaded data from GitHub');
+    }
+  } else {
+    // No remote file yet — push local data up
+    if (S.participants.length > 0) {
+      await _doPush();
+      toast('Data pushed to GitHub successfully');
+    } else {
+      setSyncStatus('synced', 'Synced');
+      toast('GitHub sync configured — ready');
+    }
+  }
+
+  updateSettingsPill();
+}
+
+/* =====================================================
+   KEYBOARD SHORTCUTS
+   ===================================================== */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeRenameModal();
+    closeSettings();
+  }
+});
+
+/* =====================================================
+   INIT
+   ===================================================== */
+loadGHConfig();
+loadLocalStorage();
+renderWeekSelect();
+renderEntry();
+updateStats();
+// Then fetch from GitHub in background and update if newer
+if (ghConfigured()) {
+  ghFetch().then(remote => {
+    if (remote) {
+      const localWeek = S.currentWeek;
+      S = remote;
+      if (S.weeks.includes(localWeek)) S.currentWeek = localWeek;
+      localStorage.setItem(KEY, JSON.stringify(S));
+      renderWeekSelect();
+      renderCurrent();
+    }
+  });
+};
+</script>
+</body>
+</html>
